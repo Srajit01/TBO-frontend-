@@ -215,7 +215,7 @@ const EnhancedSearchBar = () => {
             formData.append("image", image);
 
             try {
-                const response = await axios.post('http://localhost:9090/api/detect-location', formData, {
+                const response = await axios.post('https://tbo-server-v1-0.onrender.com/api/detect-location', formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data',
                     },

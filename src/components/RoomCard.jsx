@@ -29,7 +29,7 @@ const RoomCard = ({ room, onSelect }) => {
 
         try {
             const prebookResponse = await axios.post(
-                "http://localhost:9090/api/prebook",
+                "https://tbo-server-v1-0.onrender.com/api/prebook",
                 {
                     BookingCode: room.BookingCode,
                     PaymentMode: paymentMethod,

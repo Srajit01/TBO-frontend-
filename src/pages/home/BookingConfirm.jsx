@@ -149,7 +149,7 @@ const BookingPage = () => {
                  PhoneNumber: "918448780621"
              };
                await axios.post(
-                "http://localhost:9090/api/Book",
+                "https://tbo-server-v1-0.onrender.com/api/Book",
                    bookingDataToSave,
                     {
                      headers: {

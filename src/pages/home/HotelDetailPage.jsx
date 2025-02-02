@@ -121,7 +121,7 @@ const HotelDetailPage = () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `http://localhost:9090/api/hotel/${hotelCode}`
+          `https://tbo-server-v1-0.onrender.com/api/hotel/${hotelCode}`
         );
         setHotel(response.data.HotelDetails[0]);
       } catch (err) {

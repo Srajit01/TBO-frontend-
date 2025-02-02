@@ -146,7 +146,7 @@ function BookingPage() {
       };
 
       const response = await axios.post(
-        "http://localhost:9090/api/hotelsearch",
+        "https://tbo-server-v1-0.onrender.com/api/hotelsearch",
         payload
       );
       const availableRooms = response.data || [];

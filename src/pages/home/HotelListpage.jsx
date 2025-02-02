@@ -122,7 +122,7 @@ function HotelListPage() {
 
         try {
             const response = await axios.post(
-                `http://localhost:9090/api/hotels/${data.code}`,
+                `https://tbo-server-v1-0.onrender.com/api/hotels/${data.code}`,
                 {
                     page: pagination.currentPage,
                     limit: pagination.hotelsPerPage,
