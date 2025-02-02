@@ -26,7 +26,7 @@ function BookingPage() {
   if (!hotel) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-xl text-gray-600">Book hotel to see your Bookings</p>
+        <p className="text-xl text-gray-600">This section is under development will be done before 10 feb</p>
       </div>
     );
   }

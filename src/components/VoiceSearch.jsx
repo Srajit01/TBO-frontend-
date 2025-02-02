@@ -1,43 +1,70 @@
-import React, { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 function VoiceSearch() {
-  const [status, setStatus] = useState("Click to start voice search");
+    const [isListening, setIsListening] = useState(false);
+    const [error, setError] = useState(null);
+    const recognitionRef = useRef(null);
+    const [transcript, setTranscript] = useState('');
 
-  const handleVoiceSearch = () => {
-    if ("webkitSpeechRecognition" in window) {
-      const recognition = new window.webkitSpeechRecognition();
-      recognition.lang = "en-US";
-      recognition.interimResults = false; // Ensure only final results are processed
+    useEffect(() => {
+        if ("webkitSpeechRecognition" in window) {
+            recognitionRef.current = new window.webkitSpeechRecognition();
+            recognitionRef.current.lang = "en-US";
+            recognitionRef.current.interimResults = false;
+            recognitionRef.current.onstart = () => {
+              setIsListening(true);
+              setError(null);
+            };
 
-      recognition.onstart = () => {
-        setStatus("Listening...");
-      };
+            recognitionRef.current.onresult = (event) => {
+                let query = event.results[0][0].transcript.trim(); // Remove leading/trailing spaces
+                query = query.replace(/\.$/, "");
+                setTranscript(query);
+                setIsListening(false);
+                
+            };
 
-      recognition.onresult = (event) => {
-        let query = event.results[0][0].transcript.trim(); // Remove leading/trailing spaces
-        query = query.replace(/\.$/, ""); // Remove trailing full stop if present
-        setStatus("Voice Search Completed: " + query);
-        // Process query (e.g., send to API)
-      };
+            recognitionRef.current.onerror = (event) => {
+                setError("Voice search error. Please try again.");
+                setIsListening(false);
+            };
 
-      recognition.onerror = () => {
-        setStatus("Voice search error. Please try again.");
-      };
+            recognitionRef.current.onend = () => {
+                if(isListening){
+                    setIsListening(false);
+                }
+            }
+      } else {
+            setError("Voice search not supported on this browser.");
+        }
+    }, []);
 
-      recognition.start();
-    } else {
-      setStatus("Voice search not supported on this browser.");
-    }
-  };
-
-  return (
-    <div className="voice-search">
-      <h2>Search with Your Voice</h2>
-      <button onClick={handleVoiceSearch}>Start Voice Search</button>
-      <p>{status}</p>
-    </div>
-  );
+    const startListening = (callback) => {
+        if (recognitionRef.current) {
+            setTranscript("");
+          recognitionRef.current.start();
+          recognitionRef.current.onresult = (event) => {
+              let query = event.results[0][0].transcript.trim(); // Remove leading/trailing spaces
+              query = query.replace(/\.$/, "");
+              setTranscript(query);
+              setIsListening(false);
+              callback(query)
+          };
+        }
+    };
+    
+    const stopListening = () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+        setIsListening(false);
+        }
+    };
+    return {
+        isListening,
+        error,
+        startListening,
+        stopListening,
+        transcript,
+    };
 }
-
 export default VoiceSearch;
-npm 

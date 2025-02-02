@@ -42,7 +42,7 @@ export const featuredCities = [
       description: 'City of Nawabs'
     },
     {
-      id: '108256',
+      id: '131398',
       name: 'Goa',
       imageUrl: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&q=80&w=1000',
       description: 'Beach Paradise'

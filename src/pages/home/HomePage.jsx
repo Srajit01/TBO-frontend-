@@ -10,12 +10,18 @@ import {
   X,
   MessageSquare,
   ArrowRight,
-} from "lucide-react"; // Ensure ArrowRight is imported
+} from "lucide-react";
+// import { useGoogleLogin } from "@react-oauth/google";
+import { toast } from "sonner";
+import { v4 as uuidv4 } from 'uuid';
 
 function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [user, setUser] = useState(null);
+  const [selectedCityCode, setSelectedCityCode] = useState(null);
+  const [userName, setUserName] = useState("");
+  const [googleAuthUrl, setGoogleAuthUrl] = useState('');
 
   // Background images for the hero section
   const backgroundImages = [
@@ -38,29 +44,92 @@ function HomePage() {
     return () => clearInterval(interval);
   }, [backgroundImages.length]);
 
-  // Mock auth functions for sign-in/sign-out
-  const handleGoogleSignIn = async () => {
-    try {
-      const mockUser = { name: "John Doe", email: "johndoe@example.com" }; // Mock user object
-      localStorage.setItem("user", JSON.stringify(mockUser));
-      setUser(mockUser);
-    } catch (error) {
-      console.error("Error during sign-in", error);
+  useEffect(() => {
+    // Check if user details exist in localStorage
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    if (storedUser && storedUser.email) {
+      setUser(storedUser);
+      setUserName(storedUser.name || "User"); // Default to "User" if name is not available
     }
+     const handleMessage = (event) => {
+      if (event.data && event.data.type === "oauth_success") {
+          // Handle the successful login, update state
+          const userData = event.data.data;
+          localStorage.setItem("user", JSON.stringify(userData));
+          setUser(userData);
+          setUserName(userData.name || "User")
+      }
   };
+
+    window.addEventListener("message", handleMessage);
+
+    return () => window.removeEventListener("message", handleMessage);
+
+  }, []);
+
+  useEffect(() => {
+       const clientId = import.meta.env.VITE_GOOGLE_AUTH_CLIENT_ID
+      const redirectUri = window.location.origin; // Use your actual redirect URI
+      const scope = 'profile email';
+      const state = uuidv4();
+      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=token&state=${state}`
+      setGoogleAuthUrl(authUrl);
+  }, []);
+
+
+   const handleGoogleSignIn = () => {
+        window.location.href = googleAuthUrl
+    };
+
+  async function getUserProfile(tokenInfo) {
+    try {
+      const { data } = await axios.get(
+        "https://www.googleapis.com/oauth2/v1/userinfo",
+        {
+          headers: {
+            Authorization: `Bearer ${tokenInfo?.access_token}`,
+            Accept: "application/json",
+          },
+        }
+      );
+        if(window.opener){
+            window.opener.postMessage({
+                type: "oauth_success",
+                data: data,
+            },"*")
+        } else{
+            localStorage.setItem("user", JSON.stringify(data));
+            setUser(data);
+            setUserName(data.name || "User");
+        }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      toast.error("Failed to fetch user profile");
+    }
+  }
+
+
 
   const handleSignOut = () => {
     localStorage.removeItem("user");
     setUser(null);
+    setUserName("");
   };
 
-  // Load user from local storage on component mount
-  useEffect(() => {
-    const savedUser = localStorage.getItem("user");
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+  const handleCityCardClick = (cityCode) => {
+    setSelectedCityCode(cityCode);
+  };
+   useEffect(() => {
+    const hash = window.location.hash.substring(1); // Remove '#'
+    const params = new URLSearchParams(hash);
+    const accessToken = params.get('access_token');
+    const state = params.get('state');
+
+    if (accessToken && state) {
+         getUserProfile({ access_token: accessToken })
+         window.location.hash = '';
     }
-  }, []);
+  }, [window.location.hash]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -86,18 +155,23 @@ function HomePage() {
                 Hotels
               </a>
               <a
-                href="/about"
+                href="https://www.tbo.com/about-us"
                 className="text-gray-600 hover:text-blue-600 transition-colors"
               >
                 About
               </a>
               {user ? (
-                <button
-                  onClick={handleSignOut}
-                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  Sign Out
-                </button>
+                <div className="flex items-center space-x-4">
+                    <span className="text-gray-700 font-medium">
+                        Welcome, {userName}!
+                    </span>
+                  <button
+                    onClick={handleSignOut}
+                    className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    Sign Out
+                  </button>
+                </div>
               ) : (
                 <button
                   onClick={handleGoogleSignIn}
@@ -159,7 +233,7 @@ function HomePage() {
             <p className="text-gray-600 text-lg mb-6">
               Search through thousands of hotels across the Globe.
             </p>
-            <SearchBar />
+            <SearchBar cityCode={selectedCityCode} />
           </div>
         </div>
 
@@ -173,7 +247,11 @@ function HomePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {featuredCities.map((city) => (
-              <CityCard key={city.id} city={city} />
+              <CityCard
+                key={city.id}
+                city={city}
+                onCityClick={handleCityCardClick}
+              />
             ))}
           </div>
         </div>
@@ -232,9 +310,7 @@ function HomePage() {
 
               {/* Chatbot Assistance Box */}
               <a
-                href="https://www.tbocom.com/chatbot"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="https://chatbot-frontend-nu-ten.vercel.app/"
                 className="w-full md:w-1/2 group relative overflow-hidden bg-gradient-to-r from-emerald-600/90 to-emerald-400/90 backdrop-blur-sm p-6 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
               >
                 {/* Decorative elements */}
@@ -287,7 +363,7 @@ function HomePage() {
                 <ul className="space-y-2">
                   <li>
                     <a
-                      href="/hotels"
+                      href="/"
                       className="text-gray-300 hover:text-white transition-colors duration-200"
                     >
                       Hotels
@@ -295,7 +371,7 @@ function HomePage() {
                   </li>
                   <li>
                     <a
-                      href="/about"
+                      href="https://www.tbo.com/about-us"
                       className="text-gray-300 hover:text-white transition-colors duration-200"
                     >
                       About Us
@@ -303,7 +379,7 @@ function HomePage() {
                   </li>
                   <li>
                     <a
-                      href="/contact"
+                      href="/#"
                       className="text-gray-300 hover:text-white transition-colors duration-200"
                     >
                       Contact

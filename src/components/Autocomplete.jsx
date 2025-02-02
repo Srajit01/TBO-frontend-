@@ -1,25 +1,38 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Search } from 'lucide-react';
 
 const Autocomplete = ({ data, handleChange, city, setCity }) => {
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
-  const [filteredData, setFilteredData] = useState([]);
+  const [debouncedCity, setDebouncedCity] = useState("");
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
+  const debounceTimeoutRef = useRef(null);
+
+    const filteredData = useMemo(() => {
+        if (!debouncedCity.trim()) {
+            return [];
+        }
+      return data?.filter((item) =>
+            item.city.toLowerCase().startsWith(debouncedCity.toLowerCase())
+        ) || [];
+    }, [debouncedCity, data]);
 
   useEffect(() => {
-    if (city.city.trim() === '') {
-      setFilteredData([]);
-      return;
-    }
+    setIsDropdownVisible(filteredData.length > 0);
+  }, [filteredData]);
 
-    const filtered = data?.filter((item) =>
-      item.city.toLowerCase().startsWith(city.city.toLowerCase())
-    ) || [];
-    setFilteredData(filtered);
-    setIsDropdownVisible(filtered.length > 0);
-  }, [city, data]);
+    const handleInputChange = (e) => {
+      const newCityValue = e.target.value;
+        setCity(prev => ({...prev, city:newCityValue}));
+        if(debounceTimeoutRef.current){
+           clearTimeout(debounceTimeoutRef.current);
+        }
+        debounceTimeoutRef.current = setTimeout(() => {
+          setDebouncedCity(newCityValue);
+        },300);
+    };
+
 
   const handleKeyDown = (e) => {
     if (!filteredData.length) return;
@@ -42,15 +55,15 @@ const Autocomplete = ({ data, handleChange, city, setCity }) => {
 
   const handleSelection = (item) => {
     if (!item) return;
-    
+
     const cityName = item.city.split(',')[0].trim();
     const cityCode = item.code || item.cityCode || item.hotelCode || cityName;
-    
+
     setCity({
       city: cityName,
       code: item.citycode
     });
-    
+
     setIsDropdownVisible(false);
     setActiveIndex(-1);
     inputRef.current?.blur();
@@ -66,9 +79,14 @@ const Autocomplete = ({ data, handleChange, city, setCity }) => {
         setIsDropdownVisible(false);
       }
     };
-
+      
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+     document.removeEventListener('mousedown', handleClickOutside);
+     if(debounceTimeoutRef.current){
+         clearTimeout(debounceTimeoutRef.current);
+     }
+    }
   }, []);
 
   return (
@@ -79,10 +97,7 @@ const Autocomplete = ({ data, handleChange, city, setCity }) => {
           ref={inputRef}
           type="text"
           value={city.city}
-          onChange={(e) => {
-            handleChange(e);
-            setIsDropdownVisible(true);
-          }}
+           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           onFocus={() => filteredData.length > 0 && setIsDropdownVisible(true)}
           className="w-full h-12 pl-10 pr-4 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200"
@@ -98,7 +113,7 @@ const Autocomplete = ({ data, handleChange, city, setCity }) => {
           {filteredData.map((item, index) => {
             const cityName = item.city.split(',')[0];
             const stateInfo = item.city.slice(cityName.length);
-            
+
             return (
               <li
                 key={index}
