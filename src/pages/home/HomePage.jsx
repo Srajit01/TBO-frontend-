@@ -277,9 +277,7 @@ function HomePage() {
             <div className="flex flex-col md:flex-row items-stretch justify-center gap-6 max-w-5xl mx-auto">
               {/* AI Trip Planner Box */}
               <a
-                href="https://www.tbocom.com"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="https://ai-trip-planner-nine-ochre.vercel.app/"
                 className="w-full md:w-1/2 group relative overflow-hidden bg-gradient-to-r from-blue-600/90 to-blue-400/90 backdrop-blur-sm p-6 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
               >
                 {/* Decorative elements */}
