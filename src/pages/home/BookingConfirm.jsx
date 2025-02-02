@@ -128,67 +128,67 @@ const BookingPage = () => {
 
 
     const handleBook = async () => {
-      if(!validateForm()){
-          return;
-      }
-        setLoading(true);
-        setError(null);
-        setBookingResponse(null);
+      // if(!validateForm()){
+      //     return;
+      // }
+      //   setLoading(true);
+      //   setError(null);
+      //   setBookingResponse(null);
 
-        try {
-             const bookingDataToSave = {
-                 BookingCode: room.BookingCode,
-                 CustomerDetails: customerDetails,
-                 BookingType: "Voucher",
-                 PaymentMode: paymentMode,
-                 PaymentInfo: paymentInfo,
-                 ClientReferenceId: "1626265961573-16415097",
-                 BookingReferenceId: "AVw123218",
-                 TotalFare: paymentInfo.BillingAmount,
-                 EmailId: "apisupport@tboholidays.com",
-                 PhoneNumber: "918448780621"
-             };
-               await axios.post(
-                "https://tbo-server-v1-0.onrender.com/api/Book",
-                   bookingDataToSave,
-                    {
-                     headers: {
-                         "Content-Type": "application/json",
-                       }
-                 }
-            );
-            const bookResponse = await axios.post(
-                "http://localhost:9090/api/Book",
-                {
-                    BookingCode: room.BookingCode,
-                    CustomerDetails: customerDetails,
-                    BookingType: "Voucher",
-                    PaymentMode: paymentMode,
-                    PaymentInfo: paymentInfo,
-                    ClientReferenceId: "1626265961573-16415097",
-                    BookingReferenceId: "AVw123218",
-                    TotalFare:paymentInfo.BillingAmount,
-                    EmailId: "apisupport@tboholidays.com",
-                    PhoneNumber: "918448780621"
-                }
-                , {
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                });
+      //   try {
+      //        const bookingDataToSave = {
+      //            BookingCode: room.BookingCode,
+      //            CustomerDetails: customerDetails,
+      //            BookingType: "Voucher",
+      //            PaymentMode: paymentMode,
+      //            PaymentInfo: paymentInfo,
+      //            ClientReferenceId: "1626265961573-16415097",
+      //            BookingReferenceId: "AVw123218",
+      //            TotalFare: paymentInfo.BillingAmount,
+      //            EmailId: "apisupport@tboholidays.com",
+      //            PhoneNumber: "918448780621"
+      //        };
+      //          await axios.post(
+      //           "https://tbo-server-v1-0.onrender.com/api/Book",
+      //              bookingDataToSave,
+      //               {
+      //                headers: {
+      //                    "Content-Type": "application/json",
+      //                  }
+      //            }
+      //       );
+      //       const bookResponse = await axios.post(
+      //           "http://localhost:9090/api/Book",
+      //           {
+      //               BookingCode: room.BookingCode,
+      //               CustomerDetails: customerDetails,
+      //               BookingType: "Voucher",
+      //               PaymentMode: paymentMode,
+      //               PaymentInfo: paymentInfo,
+      //               ClientReferenceId: "1626265961573-16415097",
+      //               BookingReferenceId: "AVw123218",
+      //               TotalFare:paymentInfo.BillingAmount,
+      //               EmailId: "apisupport@tboholidays.com",
+      //               PhoneNumber: "918448780621"
+      //           }
+      //           , {
+      //               headers: {
+      //                   "Content-Type": "application/json",
+      //               },
+      //           });
 
 
-            setBookingResponse(bookResponse.data);
-            navigate("/bookings",{ state: { bookingData: bookResponse.data } });
+      //       setBookingResponse(bookResponse.data);
+            navigate("/bookings");
 
-        } catch (err) {
-            setError(
-                err.response ? err.response.data.error : "An unexpected error occurred during booking."
-            );
-            console.error("Error in handleBook:", err)
-        } finally {
-            setLoading(false);
-        }
+        // } catch (err) {
+        //     setError(
+        //         err.response ? err.response.data.error : "An unexpected error occurred during booking."
+        //     );
+        //     console.error("Error in handleBook:", err)
+        // } finally {
+        //     setLoading(false);
+        // }
     };
 
     const handleBackToHome = () => {
